@@ -153,5 +153,6 @@ Here is the streamlit deployment for the interactive web app for stock metrics d
 
 This project is licensed under the MIT License — see the [LICENSE](LICENSE) file.
 
+Remarks: This project is not for investment advice purpose.
 ---
 
