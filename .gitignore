@@ -10,6 +10,7 @@ __pycache__/
 
 # ignore virtual environment directories
 venv/
+.venv/
 .env
 __pycache__/market_analyst.cpython-313.pyc
 
