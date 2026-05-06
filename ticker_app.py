@@ -46,7 +46,7 @@ st.write(f"Stock Analysis: {ticker} Analysis is in process...\
          Please wait...\
          \nThis may take at lease 20 seconds to complete.")
 start_time = datetime.datetime.now() 
-st.write(ma.ticker_analysis(ticker, price_history, curent_price))
+st.write(ma.ticker_analysis(ticker, curent_price, price_history))
 end_time = datetime.datetime.now()
 processing_time = end_time - start_time
 st.write(f"Prompt processing time: {processing_time}")

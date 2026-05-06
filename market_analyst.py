@@ -69,7 +69,7 @@ def ticker_analysis(ticker, current_price, price_history):
     prompt = f'''
     You are a stock analysis expert who specializes in using technical indicators to analyze {ticker} buying and selling price levels.
     Indicators: moving averages, RSI, and MACD. 
-    Your analysis needs to based on the historical date of {ticker} I provided you in {historical_prices}
+    Your analysis needs to based on the historical date of {ticker} I provided you in {price_history}
     You are given data: 
     - current price in USD of {ticker} as {current_price} 
     - the historical price data from {price_history} with 2 years history and ordering from olderest to latest information.
@@ -125,8 +125,8 @@ def indicator_description():
     Signal Line = 9-day EMA of MACD
 
     📈 How it's used:
-    MACD crosses above Signal Line = Bullish signal
-    MACD crosses below Signal Line = Bearish signal
+    MACD crosses above Signal Line = Bullish signal\\
+    MACD crosses below Signal Line = Bearish signal\\
     Traders also watch the MACD histogram, which shows the gap between MACD and Signal Line
     """
 
@@ -182,7 +182,6 @@ def plot_SMA(price_history, ticker):
     fig.update_layout(legend=dict(x=0, y=1, traceorder='normal',
                                 orientation='h', bgcolor='rgba(0,0,0,0)', bordercolor='rgba(0,0,0,0)'))
 
-    fig.show()  
     return fig
 
 
@@ -245,11 +244,10 @@ def plot_RSI(price_history, ticker):
         font=dict(color="green")
     )   
 
-    # hover text showing the close price and RSI value
-    fig.update_traces(hovertemplate="<b>Date:</b> %{x}<br><b>Close Price:</b> %{y}<br><b>RSI:</b> %{customdata[0]}",
-                    customdata=price_history_sorted[['Close ' + ticker, 'RSI_14']].values)
-    
-    fig.show()
+    # hover text showing the RSI value and close price
+    fig.update_traces(hovertemplate="<b>Date:</b> %{x}<br><b>RSI:</b> %{y}<br><b>Close Price:</b> %{customdata[0]}",
+                    customdata=price_history_sorted[['Close ' + ticker]].values)
+
     return fig
 
 
@@ -288,14 +286,7 @@ def plot_MACD(price_history, ticker):
     # hover text showing the MACD, MACD Signal, MACD Histogram values and close price 
     fig.update_traces(hovertemplate="<b>Date:</b> %{x}<br><b>Close Price:</b> %{customdata[0]}<br><b>MACD:</b> %{y}<br><b>MACD Signal:</b> %{customdata[1]}<br><b>MACD Histogram:</b> %{customdata[2]}",
                     customdata=price_history_sorted[['Close ' + ticker, 'MACD', 'MACD_Signal', 'MACD_Hist']].values)
-    # move the legend to the top left corner
     fig.update_layout(legend=dict(x=0, y=1, traceorder='normal',
                                 orientation='h', bgcolor='rgba(0,0,0,0)', bordercolor='rgba(0,0,0,0)'))
-    
-    # move the legend to the top left corner
-    fig.update_layout(legend=dict(x=0, y=1, traceorder='normal',
-                                orientation='h', bgcolor='rgba(0,0,0,0)', bordercolor='rgba(0,0,0,0)'))
-
-    fig.show()  
 
     return fig

@@ -64,7 +64,7 @@ This section provides an overview of key market metrics and indicators used in s
 # plotting the historical prices in Candlestick
 
 # candlestick chart
-fig_candle = ma.plot_candlestick_chart(price_history, ticker, "USD")
+fig_candle = ma.plot_candlestick_chart(price_history, ticker, currency)
 st.plotly_chart(fig_candle, use_container_width=True)
 
 # SMA chart
