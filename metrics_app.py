@@ -1,13 +1,6 @@
-import os
 import streamlit as st
-import yfinance as yf
-from datetime import date
 import market_analyst as ma
-import datetime as datetime
 
-# LangChain & llama-cpp
-from langchain_community.llms import LlamaCpp
-from langchain.prompts import PromptTemplate
 
 # Set page configuration
 st.markdown(

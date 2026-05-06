@@ -56,37 +56,47 @@ def historical_prices(ticker: str):
     return df
 
 # promt definition: ticker analysis
-from langchain_ollama.llms import OllamaLLM
-def ticker_analysis(ticker, current_price, price_history):
+from llm_provider import get_llm
 
-    # Load the model
-    #llm = OllamaLLM(model="llama3.2")  # Adjust the model name as needed, for example "deepseek-r1:7b" or "mistral"
-    llm = OllamaLLM(model="gemma3n") 
+def ticker_analysis(ticker, current_price, price_history):
+    llm = get_llm()
     today_date = datetime.datetime.now().strftime("%Y-%m-%d")
 
-    
+    cols = ['Date', f'Close {ticker}', 'SMA_20', 'SMA_50', 'RSI_14', 'MACD', 'MACD_Signal', 'MACD_Hist']
+    recent_data = price_history[cols].tail(60).to_string(index=False)
+    latest = price_history[cols].tail(1).iloc[0]
+    latest_summary = f"""
+- Date: {latest['Date'].strftime('%Y-%m-%d')}
+- Close price: {latest[f'Close {ticker}']} USD
+- SMA_20 (20-day moving average): {latest['SMA_20']}
+- SMA_50 (50-day moving average): {latest['SMA_50']}
+- RSI_14: {latest['RSI_14']}
+- MACD: {latest['MACD']}, Signal: {latest['MACD_Signal']}, Histogram: {latest['MACD_Hist']}"""
+
     # Prepare the prompt
     prompt = f'''
     You are a stock analysis expert who specializes in using technical indicators to analyze {ticker} buying and selling price levels.
-    Indicators: moving averages, RSI, and MACD. 
-    Your analysis needs to based on the historical date of {ticker} I provided you in {price_history}
-    You are given data: 
-    - current price in USD of {ticker} as {current_price} 
-    - the historical price data from {price_history} with 2 years history and ordering from olderest to latest information.
-    - moving averages in 20 days and 50 days is in columns 'SMA_20', 'SMA_50' in {price_history}.
-    - RSI is the 14-day relative strength index is in columns 'RSI_14' in {price_history}.
-    - MACD is the moving average convergence divergence in columns 'MACD', 'MACD_Signal','MACD_Hist' in {price_history}.
-    Your answer: 
-    - print out the lastest {ticker} price in USD information from {price_history} and with the Date information.
+    Indicators: moving averages, RSI, and MACD.
+    You are given data:
+    - current price in USD of {ticker}: {current_price}
+    - the LATEST indicator values (use these exact numbers in your analysis):
+{latest_summary}
+    - the most recent 60 days of historical price data for trend context (oldest to latest):
+{recent_data}
+    Columns: Date, Close price, SMA_20, SMA_50, RSI_14, MACD, MACD_Signal, MACD_Hist.
+    Your answer:
+    - print out the latest {ticker} price and date from the data above.
     - analyze the current price in relation to the historical data.
     - provide a recommendation on whether to "buy", "sell", or "hold" the stock based on your analysis.
     - explain your reasoning briefly, focusing on technical indicators and market trends.
     - answer is straightforward and concise, using simple language, and not too long.
-    - in the end, you need to tell, the recommendation is provided on {today_date}.
+    - do NOT use asterisks (*) for inline emphasis within sentences — only use ** for section headers.
+    - do NOT use dollar signs ($) for prices — write the number followed by USD (e.g. 287.51 USD).
+    - in the end, state that the recommendation is provided on {today_date}.
         '''
     result = llm.invoke(prompt)
-
-    return result
+    text = result.content if hasattr(result, 'content') else result
+    return text.replace('$', r'\$')
 
 # indicator description
 def indicator_description():

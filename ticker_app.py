@@ -5,52 +5,71 @@ from datetime import date
 import market_analyst as ma
 import datetime as datetime
 
-# LangChain & llama-cpp
-from langchain_community.llms import LlamaCpp
-from langchain.prompts import PromptTemplate
 
+#-----Select LLM Provider------------#
+provider = st.sidebar.selectbox("LLM Provider", ["ollama", "openai"])
+os.environ["LLM_PROVIDER"] = provider
 
-#-----Input date preparation------------#
-## get stock price and historical data
-ticker = "AAPL"
-curent_price, currency = ma.get_stock_price(ticker)
-price_history = ma.historical_prices(ticker)
-lastest_date = price_history.tail(1)["Date"].iloc[0].strftime("%Y-%m-%d")   
+api_key_ready = True
+if provider == "openai":
+    api_key = st.sidebar.text_input("OpenAI API Key", type="password")
+    if api_key:
+        os.environ["OPENAI_API_KEY"] = api_key
+    else:
+        api_key_ready = False
+
+if not api_key_ready:
+    st.sidebar.info("Enter your OpenAI API key above to run the analysis.")
+    run_analysis = False
+else:
+    run_analysis = st.sidebar.button("Run LLM Technical Analysis")
 
 #------Contents in the app---------------#
-# hearder
 st.title("📈 Stock Analysis App")
 st.header("Analyze Stock Data with LLMs")
 
-# input ticker 
-user_input = st.text_input("Enter Stock Ticker (Capitalized)", "AAPL") 
+user_input = st.text_input("Enter Stock Ticker (Capitalized)", "AAPL")
 ticker = user_input
+
+#-----Input date preparation------------#
+curent_price, currency = ma.get_stock_price(ticker)
+price_history = ma.historical_prices(ticker)
+lastest_date = price_history.tail(1)["Date"].iloc[0].strftime("%Y-%m-%d")
 st.write(f"Current price of {ticker} is {curent_price} {currency} as of {lastest_date}")
 
-# # historical chart
-# # plotting the historical prices in Candlestick
-# import plotly.graph_objects as go
-# fig = go.Figure(data=[go.Candlestick(x=price_history['Date'],
-#                                      open=price_history[f'Open {ticker}'],
-#                                      high=price_history[f'High {ticker}'],
-#                                      low=price_history[f'Low {ticker}'],
-#                                      close=price_history[f'Close {ticker}'])])
-# fig.update_layout(title=f"{ticker} Stock Price History (Candlestick Chart)",
-#                   xaxis_title="Date",
-#                   yaxis_title=f"Price ({currency})",
-#                   xaxis_rangeslider_visible=True)
-# st.plotly_chart(fig, use_container_width=True)
+#---------------------#
+# Market Indicators Overview
+st.markdown(
+    """
+### Market Indicators Overview
+| Indicator | Measures            | Key Use                   | Signal Triggers                       |
+|-----------|---------------------|---------------------------|---------------------------------------|
+| **MA**    | Trend (avg. price)  | Support / resistance zones| Golden Cross / Death Cross            |
+| **RSI**   | Momentum (0–100)    | Overbought / Oversold     | RSI > 70 (sell), RSI < 30 (buy)       |
+| **MACD**  | Trend + Momentum    | Entry / exit signals      | MACD line crosses Signal line         |
+    """
+)
 
-# LLM model selection
-st.write(f"Stock Analysis: {ticker} Analysis is in process...\
-         Please wait...\
-         \nThis may take at lease 20 seconds to complete.")
-start_time = datetime.datetime.now() 
-st.write(ma.ticker_analysis(ticker, curent_price, price_history))
-end_time = datetime.datetime.now()
-processing_time = end_time - start_time
-st.write(f"Prompt processing time: {processing_time}")
+#--------Charts--------#
+st.subheader("📊 Price Charts")
+fig_candle = ma.plot_candlestick_chart(price_history, ticker, currency)
+st.plotly_chart(fig_candle, use_container_width=True)
 
+fig_sma = ma.plot_SMA(price_history, ticker)
+st.plotly_chart(fig_sma, use_container_width=True)
 
-# # sidebar content
-# st.sidebar.markdown(ma.indicator_description())
+fig_rsi = ma.plot_RSI(price_history, ticker)
+st.plotly_chart(fig_rsi, use_container_width=True)
+
+fig_macd = ma.plot_MACD(price_history, ticker)
+st.plotly_chart(fig_macd, use_container_width=True)
+
+#--------LLM Analysis--------#
+st.subheader("🤖 LLM Analysis")
+if run_analysis:
+    with st.spinner(f"Analyzing {ticker}... this may take ~20 seconds."):
+        start_time = datetime.datetime.now()
+        result = ma.ticker_analysis(ticker, curent_price, price_history)
+        end_time = datetime.datetime.now()
+    st.markdown(result)
+    st.caption(f"Prompt processing time: {end_time - start_time}")
